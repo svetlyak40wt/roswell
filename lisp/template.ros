@@ -1,6 +1,6 @@
 #!/bin/sh
 #|-*- mode:lisp -*-|#
-#| Register a file as a template.
+#|Register a file as a template.
 exec ros -Q -m roswell -L sbcl-bin -- $0 "$@"
 |#
 

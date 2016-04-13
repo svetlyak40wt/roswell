@@ -1,6 +1,6 @@
 #!/bin/sh
 #|-*- mode:lisp -*-|#
-#|launch emacs with slime
+#|Launch emacs with slime
 exec ros -L sbcl-bin -- $0 "$@"
 |#
 (defpackage :ros.sub.emacs
