@@ -6,9 +6,11 @@ exec ros -- $0 "$@"
 
 #-ros.util
 (ros:include "util")
+#-ros.match
+(ros:include "match")
 
 (defpackage :ros.dump
-  (:use :cl :ros.util))
+  (:use :cl :ros.util :ros.match))
 (in-package :ros.dump)
 
 (unless (find-package :uiop)
@@ -34,21 +36,22 @@ exec ros -- $0 "$@"
                  (sb-ext:save-lisp-and-die path)
                  #+ccl
                  (ccl:save-application path)))))
-    (cond
-      ((null params)
+    (match params
+      (nil
        (format *error-output* "Usage: ~A [OPTIONS] dump output [-f] [-o OUTPUT] NAME~%" (ros:opt "argv0")))
-      ((equal "-f" (first params))
-       (dump-output (rest params) t))
-      ((equal "-o" (first params))
-       (if (> (length params) 1)
-           (%dump (second params))
-           (format *error-output* "Missing the pathname for an image.~%")))
+      ((list* "-f" rest)
+       (dump-output rest t))
+      ((list "-o")
+       (format *error-output* "Missing the pathname for an image.~%"))
+      ((list* "-o" path rest)
+       (%dump path))
       (t (let ((path (merge-pathnames (format nil "~A.~A" (first params) (ros.util:core-extention))
                                       (dump-dir))))
            (%dump (ensure-directories-exist path) :normal))))))
 
 (defun dump-executable (params)
-  (if params
+  (if (null params)
+      (format *error-output* "Usage: ros dump executable help~%")
       (let ((cmds (let ((*read-eval*))
                     (read-from-string
                      (format nil "(~A)"
@@ -85,18 +88,17 @@ exec ros -- $0 "$@"
          #'(lambda ()
              (setf ros:*argv* (rest (ccl::command-line-arguments)))
              (ros:run cmds))
-         :prepend-kernel t))
-      (format *error-output* "Usage: ros dump executable help~%")))
+         :prepend-kernel t))))
 
-(defvar *subcmds*
-  '(("output" dump-output)
+(defun main (&rest args)
+  (match args
+    ((list* "main" "dump" "output" args)
+     (dump-output args))
     #+(or sbcl ccl)
-    ("executable" dump-executable)))
-
-(defun main (subcmd cmd &rest r)
-  (cond ((and (equal subcmd "main") r)
-         (let ((func (second (assoc (first r) *subcmds* :test 'equal))))
-           (if func
-               (funcall func (rest r))
-               (format *error-output* "'~A' is not a valid command for '~A' subcommand~%" (first r) cmd))))
-        (t (format t "~{~a~%~}" (mapcar #'car *subcmds*)))))
+    ((list* "main" "dump" "executable" args)
+     (dump-executable args))
+    ((list* "main" "dump" x _)
+     (format *error-output* "'~A' is not a valid command for '~A' subcommand~%" x cmd))
+    (_
+     ;; for completion
+     (format t "~{~a~%~}" '("output" "executable")))))
