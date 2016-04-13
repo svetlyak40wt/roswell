@@ -72,23 +72,24 @@ exec ros -- $0 "$@"
                   cmds (if (first cmds)
                            (append cmds main-list)
                            main-list))))
-        #+sbcl
-        (sb-ext:save-lisp-and-die
-         out
-         :toplevel
-         #'(lambda ()
-             (setf ros:*argv* (rest sb-ext:*posix-argv*))
-             (ros:run cmds))
-         :executable t
-         :save-runtime-options t)
-        #+ccl
-        (ccl:save-application
-         out
-         :toplevel-function
-         #'(lambda ()
-             (setf ros:*argv* (rest (ccl::command-line-arguments)))
-             (ros:run cmds))
-         :prepend-kernel t))))
+        (actually-save-and-die out cmds))))
+
+(defun actually-save-and-die ()
+  #+sbcl
+  (sb-ext:save-lisp-and-die out
+                            :toplevel
+                            #'(lambda ()
+                                (setf ros:*argv* (rest sb-ext:*posix-argv*))
+                                (ros:run cmds))
+                            :executable t
+                            :save-runtime-options t)
+  #+ccl
+  (ccl:save-application out
+                        :toplevel-function
+                        #'(lambda ()
+                            (setf ros:*argv* (rest (ccl::command-line-arguments)))
+                            (ros:run cmds))
+                        :prepend-kernel t))
 
 (defun main (&rest args)
   (match args
