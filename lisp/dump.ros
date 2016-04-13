@@ -60,19 +60,17 @@ exec ros -- $0 "$@"
                 (warn "dumping an executable without specifing the initial behaviour."))))
        (assert (fboundp (first restart-form)))
        (when (equalp (pathname-type out) "ros")
-         (let ((*package* (find-package :cl-user))
-               main-list)
+         (let ((*package* (find-package :cl-user)))
            ;; fixme: document the behavior
            ;; load the file OUT, set ros:*main* to 'main symbol in the last effective package
            (ros:script nil out)
-           (setf
-            ;; stringify the main function (why?)
-            main-list (let ((*package* (find-package :keyword)))
-                        `((:entry ,(format nil "~S" ros:*main*))))
-            ;; workaround for windows environment
-            out (make-pathname :type #-win32 nil #+win32 "exe" :defaults actual-out)
-            ;; prepend main-list
-            restart-form (if restart-form (append restart-form main-list) main-list))))
+           ;; append "exe" extension for windows environments
+           (setf out (make-pathname :type #-win32 nil #+win32 "exe" :defaults actual-out))
+           (let ((main-list (let ((*package* (find-package :keyword)))
+                              ;; stringify the main function (why?)
+                              `((:entry ,(format nil "~S" ros:*main*))))))
+             ;; prepend main-list
+             (setf restart-form (if restart-form (append restart-form main-list) main-list)))))
        (actually-save-and-die out restart-form)))
     ((list* out _)
      (dump-executable (list out "-o" out)))))
