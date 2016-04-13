@@ -93,6 +93,7 @@ exec ros -- $0 "$@"
                         :prepend-kernel t))
 
 (defun main (&rest args)
+  (declare #+sbcl (sb-ext:muffle-conditions sb-kernel:redefinition-warning cl:style-warning))
   (match args
     ((list* "main" "dump" "output" args)
      (dump-output args))
