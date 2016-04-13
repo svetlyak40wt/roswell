@@ -11,38 +11,51 @@
 (in-package :ros.util)
 
 (defun uname ()
+  "Returns uname. Example: linux , darwin"
   (ros:roswell '("roswell-internal-use" "uname") :string t))
 
 (defun uname-m ()
+  "Returns the machine type as a string. Example: x86-64"
   (ros:roswell '("roswell-internal-use" "uname" "-m") :string t))
 
 (defun homedir ()
+  "Returns the user-level installation directory of roswell. Example: /home/user/.roswell"
   (ros:opt "homedir"))
 
-(defun impl (imp)
-  (ros:roswell `("roswell-internal-use" "impl" ,(or imp "")) :string t))
+(defun impl (&optional (imp ""))
+  "Returns a full name/version of an implementation. Default: current system.
+Example:
+  (impl) -> sbcl/1.3.2 (current system)
+  (impl \"ccl\") -> ccl/system (currently installed system) "
+  (ros:roswell `("roswell-internal-use" "impl" ,imp) :string t))
 
 (defun which (cmd)
+  "equivalent to \"which\" command on shell"
   (let ((result (ros:roswell `("roswell-internal-use" "which" ,cmd) :string t)))
     (unless (zerop (length result))
       result)))
 
 (defun download (uri file &key proxy)
+  "Interface to curl4 in the roswell C binary"
   (declare (ignorable proxy))
   (ensure-directories-exist file)
   (ros:roswell `("roswell-internal-use" "download" ,uri ,file) :interactive nil))
 
 (defun expand (archive dest &key verbose)
+  "Interface to the roswell C binary"
   (ros:roswell `(,(if verbose "-v" "")"roswell-internal-use tar" "-xf" ,archive "-C" ,dest)
                (or #-win32 :interactive nil) nil))
 
 (defun core-extention (&optional (impl (ros:opt "impl")))
+  "Interface to the roswell C binary. Returns \"core\" on sbcl."
   (ros:roswell `("roswell-internal-use" "core-extention" ,impl) :string t))
 
 (defun config (c)
+  "Interface to roswell C binary."
   (ros:roswell `("config" "show" ,c) :string t))
 
 (defun (setf config) (val item)
+  "Interface to roswell C binary."
   (ros:roswell `("config" "set" ,item ,val) :string t)
   val)
 
@@ -65,6 +78,7 @@
       "sh"))
 
 (defun version (&optional (opt ""))
+  "Interface to roswell C binary."
   (ros:roswell `("roswell-internal-use" "version"
 					,(string-downcase opt)) :string t))
 
