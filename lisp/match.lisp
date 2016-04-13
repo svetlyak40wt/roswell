@@ -1,6 +1,4 @@
 
-(ql:quickload :alexandria :silent t)
-
 (defpackage :ros.match
   (:use :cl :alexandria)
   (:shadow :once-only)
@@ -13,7 +11,7 @@
 
 ;; from alexandria, but adds `ignorable'
 (defmacro once-only (specs &body forms)
-  (let ((gensyms (make-gensym-list (length specs) "ONCE-ONLY"))
+  (let ((gensyms (loop :repeat (length specs) :collect (gensym "ONCE-ONLY")))
         (names-and-forms (mapcar (lambda (spec)
                                    (etypecase spec
                                      (list
