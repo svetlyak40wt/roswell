@@ -152,7 +152,10 @@
        (if revert
            "patch -p0 -R -r -"
            "patch -p0 -N -r -")
-       :output t :input patch :ignore-error-status t)))
+       :output t
+       :error-output t
+       :input patch
+       :ignore-error-status t)))
   (cons t argv))
 
 (defun sbcl-config (argv)
@@ -195,7 +198,10 @@
            (*standard-output* (make-broadcast-stream out #+sbcl(make-instance 'count-line-stream))))
       (chdir src)
       (format t "~&~S~%" cmd)
-      (uiop/run-program:run-program cmd :output t :ignore-error-status nil)))
+      (uiop/run-program:run-program cmd
+                                    :output t
+                                    :error-output t
+                                    :ignore-error-status nil)))
   (cons t argv))
 
 (defun sbcl-install (argv)
@@ -219,7 +225,9 @@
            (list (sh) "-lc" (format nil "cd ~S;~A ~A"
                                     (#+win32 mingw-namestring #-win32 princ-to-string src)
                                     (or #-win32 (sh) "")
-                                    "./install.sh")) :output t)))
+                                    "./install.sh"))
+           :output t
+           :error-output t)))
       (format *error-output* "done.~%")))
   (cons t argv))
 
@@ -227,7 +235,8 @@
   (uiop/run-program:run-program
    (list (sh) "-lc" (format nil "cp `which zlib1.dll` ~S"
                             (#+win32 mingw-namestring #-win32 princ-to-string (merge-pathnames "bin/" (opt "prefix")))))
-   :output t)
+   :output t
+   :error-output t)
   (cons t argv))
 
 (defun sbcl-backup-features (argv)
@@ -322,7 +331,9 @@
            (*standard-output* (make-broadcast-stream
                                out #+sbcl(make-instance 'count-line-stream))))
       (uiop/run-program:run-program
-       (list (sh) "-lc" (format nil "cd ~S;./clean.sh" src)) :output t))
+       (list (sh) "-lc" (format nil "cd ~S;./clean.sh" src))
+       :output t
+       :error-output t))
     (format t "done.~%"))
   (cons t argv))
 
