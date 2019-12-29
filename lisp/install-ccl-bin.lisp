@@ -40,8 +40,20 @@
 (defun ccl-bin-expand (argv)
   (format t "~%Extracting archive:~A~%" (opt "download.archive"))
   (let* ((impls (merge-pathnames (format nil "impls/~A/~A/ccl-bin/" (uname-m) (uname)) (homedir)))
-         (path (merge-pathnames (format nil "~A/" (opt "as")) impls)))
-    (#-win32 expand #+win32 zip:unzip (opt "download.archive") (ensure-directories-exist impls))
+         (path (merge-pathnames (format nil "~A/" (opt "as")) impls))
+         ;; When user used a custom download.uri, and pointed
+         ;; to the official CCL release, we need to unpack it into
+         ;; a ccl/ directory, because this archive have all binaries
+         ;; on it's top level.
+         (dir-to-extract (merge-pathnames
+                          (if (search "https://github.com/Clozure/ccl/releases/download"
+                                      (opt "download.uri"))
+                              "ccl/"
+                              "")
+                          impls)))
+    (#-win32 expand #+win32 zip:unzip
+     (opt "download.archive")
+     (ensure-directories-exist dir-to-extract))
     (and (probe-file path)
          (uiop/filesystem:delete-directory-tree
           path :validate t))
