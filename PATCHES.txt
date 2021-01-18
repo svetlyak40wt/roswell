@@ -1,0 +1,4 @@
+:BASE roswell/roswell@release
+
+use-my-repo-url
+fix-install-under-qlot
