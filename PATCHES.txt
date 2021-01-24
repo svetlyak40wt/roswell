@@ -1,4 +1,4 @@
 :BASE roswell/roswell@release
 
 use-my-repo-url
-fix-install-under-qlot
+fix-install-under-qlot # already merged to "master" but not to "release"
