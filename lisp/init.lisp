@@ -174,13 +174,13 @@ have the latest asdf, and this file has a workaround for this.
 
   (cond
     (is-quicklisp-already-available
-     (setf
-      *local-project-directories*
-      (copy-list
-       (symbol-value (read-from-string "ql:*local-project-directories*"))))
+     (unless (equal (opt "quicklisp")
+                    (namestring (symbol-value (read-from-string "ql:*quicklisp-home*"))))
+       (setf *local-project-directories*
+             (copy-list
+              (symbol-value (read-from-string "ql:*local-project-directories*")))))
      ;; In this case we have to return nil
      (values nil))
-    
     (t ;; If quicklisp is not loaded yet:
      (let ((path (make-pathname
                   :name "setup"
